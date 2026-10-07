@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Thali Club</title>
+  <meta name="description" content="Pick a date and a pure-veg Jain-friendly restaurant in Ahmedabad for this month's get-together." />
+  <meta name="theme-color" content="#E8833A" />
+  <meta property="og:title" content="Thali Club — this month's plan" />
+  <meta property="og:description" content="Mark the dates you're free, vote for a restaurant, and we'll lock it in." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍛</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">🍛</span>
+      <div>
+        <div class="brand-name">Thali Club</div>
+        <div class="brand-sub">Pure veg · Jain-friendly · Ahmedabad</div>
+      </div>
+    </div>
+    <div class="month-switch" role="group" aria-label="Month">
+      <button class="icon-btn" id="prevMonth" aria-label="Previous month">‹</button>
+      <span id="monthLabel">—</span>
+      <button class="icon-btn" id="nextMonth" aria-label="Next month">›</button>
+    </div>
+    <div class="top-actions">
+      <button class="icon-btn" id="notifyBtn" title="Turn on alerts" aria-label="Turn on alerts">🔔</button>
+      <button class="me-chip" id="meChip" hidden></button>
+    </div>
+  </header>
+
+  <div id="finalBanner" class="final-banner" hidden></div>
+
+  <main class="layout">
+    <section class="content">
+      <section class="hero">
+        <h1 id="heroTitle">Where are we eating this month?</h1>
+        <p class="muted" id="heroSub">Mark the days you're free, vote for a place, chat it out — then lock it in and tell the WhatsApp group.</p>
+        <div class="members-row" id="membersRow"></div>
+      </section>
+
+      <nav class="stepper" aria-label="Steps">
+        <button class="step" data-step="1"><span class="step-n">1</span><span class="step-t">Pick dates</span></button>
+        <span class="step-line"></span>
+        <button class="step" data-step="2"><span class="step-n">2</span><span class="step-t">Choose restaurant</span></button>
+        <span class="step-line"></span>
+        <button class="step" data-step="3"><span class="step-n">3</span><span class="step-t">Finalize</span></button>
+      </nav>
+
+      <!-- STEP 1 -->
+      <section class="panel" data-panel="1">
+        <div class="panel-head">
+          <div>
+            <h2>When are you free?</h2>
+            <p class="muted">Tap every date that works for you. Everyone's picks show up live.</p>
+          </div>
+          <div class="legend">
+            <span><i class="dot dot-me"></i>You</span>
+            <span><i class="dot dot-all"></i>Everyone free</span>
+          </div>
+        </div>
+        <div class="calendar" id="calendar"></div>
+        <div class="best-dates" id="bestDates"></div>
+        <div class="panel-foot">
+          <button class="btn btn-primary" data-goto="2">Next: choose restaurant →</button>
+        </div>
+      </section>
+
+      <!-- STEP 2 -->
+      <section class="panel" data-panel="2" hidden>
+        <div class="panel-head">
+          <div>
+            <h2>Pick a place</h2>
+            <p class="muted">All pure veg with Jain (no onion, no garlic) options. One vote each — you can change it anytime.</p>
+          </div>
+        </div>
+        <div class="filters">
+          <div class="chips" id="cuisineChips"></div>
+          <label class="search">
+            <span aria-hidden="true">🔍</span>
+            <input id="searchInput" type="search" placeholder="Search name or area" />
+          </label>
+        </div>
+        <div class="cards" id="cards"></div>
+        <div class="panel-foot">
+          <button class="btn btn-ghost" data-goto="1">← Dates</button>
+          <button class="btn btn-primary" data-goto="3">Next: finalize →</button>
+        </div>
+      </section>
+
+      <!-- STEP 3 -->
+      <section class="panel" data-panel="3" hidden>
+        <div id="finalizeArea"></div>
+      </section>
+    </section>
+
+    <aside class="chat" id="chat" aria-label="Group chat">
+      <div class="chat-head">
+        <div>
+          <div class="chat-title">Group chat</div>
+          <div class="chat-sub" id="chatSub">Live with everyone</div>
+        </div>
+        <button class="icon-btn chat-close" id="chatClose" aria-label="Close chat">✕</button>
+      </div>
+      <div class="chat-list" id="chatList"></div>
+      <form class="chat-form" id="chatForm" autocomplete="off">
+        <input id="chatInput" maxlength="1000" placeholder="Say something…" />
+        <button class="btn btn-primary btn-send" aria-label="Send">➤</button>
+      </form>
+    </aside>
+  </main>
+
+  <button class="chat-fab" id="chatFab" aria-label="Open chat">💬<span class="badge" id="chatBadge" hidden>0</span></button>
+
+  <!-- Join dialog -->
+  <dialog id="joinDialog" class="dialog">
+    <form method="dialog" id="joinForm">
+      <div class="dialog-emoji">🍛</div>
+      <h2>Welcome to Thali Club</h2>
+      <p class="muted">Who are you? Tap your name or add yourself.</p>
+      <div class="join-members" id="joinMembers"></div>
+      <label class="field">
+        <span>Your name</span>
+        <input id="joinName" maxlength="30" required placeholder="e.g. Tarang" />
+      </label>
+      <button class="btn btn-primary btn-block" id="joinBtn">Let's eat →</button>
+    </form>
+  </dialog>
+
+  <!-- Restaurant detail dialog -->
+  <dialog id="detailDialog" class="dialog dialog-wide">
+    <div id="detailBody"></div>
+  </dialog>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <canvas id="confetti" aria-hidden="true"></canvas>
+
+  <footer class="foot muted">
+    Dish photos: Wikimedia Commons (CC). Always say “Jain” while ordering — kitchens confirm no onion / garlic / root veg.
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
