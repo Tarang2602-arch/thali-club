@@ -3,7 +3,7 @@
 A monthly dinner planner for our group of 5. Each month:
 
 1. **Pick dates.** Everyone taps the days they're free. The best dates show up live.
-2. **Choose a restaurant.** Vote from 13 pure-veg Ahmedabad places that serve Jain food (no onion, no garlic). Each one has photos, a map, the address, Jain picks, a menu link and navigation.
+2. **Choose a restaurant.** Vote from 94 vegetarian places across Ahmedabad with Jain food (no onion, no garlic). Filter by cuisine or area, sort by votes or price, or search by dish. Each one has photos, a map, the address, Jain picks, a menu link and navigation.
 3. **Chat** in the built-in group chat.
 4. **Finalize.** Anyone can lock in the plan. Everyone who has the page open gets an instant alert and confetti. Then tap **Send to WhatsApp group**, which pre-fills the date, time, address and Google Maps link.
 

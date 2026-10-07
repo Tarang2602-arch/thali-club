@@ -76,17 +76,29 @@
         <div class="panel-head">
           <div>
             <h2>Pick a place</h2>
-            <p class="muted">All pure veg with Jain (no onion, no garlic) options. One vote each — you can change it anytime.</p>
+            <p class="muted">Vegetarian places across Ahmedabad with Jain (no onion, no garlic) food. One vote each — you can change it anytime.</p>
           </div>
         </div>
         <div class="filters">
           <div class="chips" id="cuisineChips"></div>
+        </div>
+        <div class="filter-row">
           <label class="search">
             <span aria-hidden="true">🔍</span>
-            <input id="searchInput" type="search" placeholder="Search name or area" />
+            <input id="searchInput" type="search" placeholder="Search name, area or dish" />
           </label>
+          <select id="areaSelect" class="select" aria-label="Area"></select>
+          <select id="sortSelect" class="select" aria-label="Sort">
+            <option value="votes">Most votes</option>
+            <option value="priceAsc">Price: low → high</option>
+            <option value="priceDesc">Price: high → low</option>
+            <option value="name">A → Z</option>
+          </select>
+          <label class="toggle"><input type="checkbox" id="jainOnly" /> Confirmed Jain only</label>
         </div>
+        <div class="result-count muted" id="resultCount"></div>
         <div class="cards" id="cards"></div>
+        <div class="more-wrap"><button class="btn" id="showMore" hidden>Show more</button></div>
         <div class="panel-foot">
           <button class="btn btn-ghost" data-goto="1">← Dates</button>
           <button class="btn btn-primary" data-goto="3">Next: finalize →</button>

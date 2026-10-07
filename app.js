@@ -1,6 +1,6 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { SUPABASE_URL, SUPABASE_KEY, GROUP_NAME, GROUP_SIZE, DEFAULT_TIME, WHATSAPP_GROUP_LINK } from "./config.js";
-import { RESTAURANTS, CUISINES, mapsSearchUrl, mapsDirectionsUrl, mapsEmbedUrl, menuUrl } from "./restaurants.js";
+import { RESTAURANTS, CUISINES, AREAS, mapsSearchUrl, mapsDirectionsUrl, mapsEmbedUrl, menuUrl } from "./restaurants.js";
 
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -46,6 +46,10 @@ const state = {
   plan: null,
   step: null,
   cuisine: "All",
+  area: "All areas",
+  sort: "votes",
+  jainOnly: false,
+  shown: 24,
   search: "",
   unread: 0,
   channel: null,
@@ -354,19 +358,35 @@ function galleryHtml(r) {
     <div class="gallery-track">${imgs.map((src, i) => `<img src="${src}" alt="${esc(r.name)} photo ${i + 1}" loading="lazy" referrerpolicy="no-referrer" />`).join("")}</div>
     ${imgs.length > 1 ? `<button class="gallery-btn prev" aria-label="Previous photo">‹</button><button class="gallery-btn next" aria-label="Next photo">›</button>
     <div class="gallery-dots">${imgs.map((_, i) => `<i class="${i ? "" : "on"}"></i>`).join("")}</div>` : ""}
-    <span class="jain-badge ${r.fullySattvic ? "sattvic" : ""}">${r.fullySattvic ? "100% NO ONION/GARLIC" : "JAIN ✓"}</span>
+    <span class="jain-badge ${r.jain}">${{ sattvic: "100% NO ONION/GARLIC", jain: "JAIN ✓", ask: "ASK FOR JAIN" }[r.jain]}</span>
+    ${r.pureVeg ? "" : `<span class="veg-badge">VEG + NON-VEG</span>`}
   </div>`;
 }
 
 function renderCards() {
   $("#cuisineChips").innerHTML = CUISINES.map((c) => `<button class="chip ${c === state.cuisine ? "active" : ""}" data-cuisine="${esc(c)}">${esc(c)}</button>`).join("");
-  const q = state.search.trim().toLowerCase();
+  const norm = (t) => t.toLowerCase().replace(/[^a-z0-9 ]/g, "");
+  const q = norm(state.search.trim());
   const stats = restStats();
   const lead = leaders();
   const myVote = state.restVotes.find((v) => v.member === state.me)?.restaurant_id;
-  const list = RESTAURANTS.filter((r) =>
+  const all = RESTAURANTS.filter((r) =>
     (state.cuisine === "All" || r.cuisine.includes(state.cuisine)) &&
-    (!q || `${r.name} ${r.area} ${r.cuisine.join(" ")} ${r.tagline}`.toLowerCase().includes(q)));
+    (state.area === "All areas" || r.area === state.area) &&
+    (!state.jainOnly || r.jain !== "ask") &&
+    (!q || norm(`${r.name} ${r.area} ${r.cuisine.join(" ")} ${r.tagline} ${r.picks.join(" ")}`).includes(q)));
+  const votes = (r) => stats.get(r.id)?.length || 0;
+  const sorters = {
+    votes: (a, b) => votes(b) - votes(a),
+    priceAsc: (a, b) => a.price - b.price,
+    priceDesc: (a, b) => b.price - a.price,
+    name: (a, b) => a.name.localeCompare(b.name),
+  };
+  all.sort(sorters[state.sort] || sorters.votes);
+  const list = all.slice(0, state.shown);
+  $("#resultCount").textContent = `Showing ${list.length} of ${all.length} restaurant${all.length === 1 ? "" : "s"}`;
+  $("#showMore").hidden = all.length <= state.shown;
+  $("#showMore").textContent = `Show more (${all.length - list.length} left)`;
   if (!list.length) {
     $("#cards").innerHTML = `<div class="empty-state">No matches. Try another filter.</div>`;
     return;
@@ -410,13 +430,12 @@ function openDetail(id) {
       <div>
         <h2>${esc(r.name)}</h2>
         <div class="muted">${esc(r.tagline)} · ₹${r.price.toLocaleString("en-IN")} for 2 (approx.)</div>
-        <div class="card-meta" style="margin-top:8px">${r.cuisine.map((c) => `<span class="tag">${esc(c)}</span>`).join("")}<span class="tag">✨ ${esc(r.vibe)}</span></div>
+        <div class="card-meta" style="margin-top:8px">${r.cuisine.map((c) => `<span class="tag">${esc(c)}</span>`).join("")}${r.vibe ? `<span class="tag">✨ ${esc(r.vibe)}</span>` : ""}${r.pureVeg ? "" : `<span class="tag">⚠️ Also serves non-veg</span>`}</div>
       </div>
-      <div class="info-box">🥗 <b>No onion / no garlic:</b> ${esc(r.jain)}</div>
+      <div class="info-box">🥗 <b>No onion / no garlic:</b> ${esc(r.jainNote)}</div>
       <div class="detail-grid">
         <div>
-          <h3>Jain-friendly picks</h3>
-          <ul>${r.picks.map((p) => `<li>${esc(p)}</li>`).join("")}</ul>
+          ${r.picks.length ? `<h3>Jain-friendly picks</h3><ul>${r.picks.map((p) => `<li>${esc(p)}</li>`).join("")}</ul>` : ""}
           <div class="link-row" style="margin-top:10px"><a class="link-btn" href="${menuUrl(r)}" target="_blank" rel="noopener">📖 Full menu & prices</a></div>
           <h3 style="margin-top:16px">Address</h3>
           <p style="margin:0">${esc(r.address)}</p>
@@ -446,7 +465,7 @@ function buildWhatsAppText() {
     `🍽️ *${r.name}* — ${r.tagline}`,
     `📍 ${r.address}`,
     `🧭 Navigate: ${mapsDirectionsUrl(r)}`,
-    `🥗 Jain / no onion-garlic: ${r.jain}`,
+    `🥗 Jain / no onion-garlic: ${r.jainNote}`,
     p.note ? `📝 ${p.note}` : null,
     free.length ? `✅ Free that day: ${free.join(", ")}` : null,
     ``,
@@ -519,7 +538,7 @@ function renderFinalize() {
   }
   allDays.sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   const rs = restStats();
-  const rests = [...RESTAURANTS].sort((a, b) => (rs.get(b.id)?.length || 0) - (rs.get(a.id)?.length || 0));
+  const rests = [...RESTAURANTS].sort((a, b) => (rs.get(b.id)?.length || 0) - (rs.get(a.id)?.length || 0) || a.name.localeCompare(b.name));
   const best = bestDates(1)[0];
   const lead = leaders();
   const myVote = state.restVotes.find((v) => v.member === state.me)?.restaurant_id;
@@ -641,7 +660,7 @@ document.addEventListener("click", (e) => {
   else if (t.dataset.detail) openDetail(t.dataset.detail);
   else if (t.dataset.goto) { setStep(Number(t.dataset.goto)); $(".stepper").scrollIntoView({ behavior: "smooth", block: "start" }); }
   else if (t.matches(".step")) setStep(Number(t.dataset.step));
-  else if (t.dataset.cuisine) { state.cuisine = t.dataset.cuisine; renderCards(); }
+  else if (t.dataset.cuisine) { state.cuisine = t.dataset.cuisine; state.shown = 24; renderCards(); }
   else if (t.dataset.pick) join(t.dataset.pick);
   else if (t.hasAttribute("data-close")) $("#detailDialog").close();
   else if (t.id === "copyMsg") {
@@ -661,7 +680,12 @@ document.addEventListener("scroll", (e) => {
 }, true);
 
 $("#detailDialog").addEventListener("click", (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
-$("#searchInput").addEventListener("input", (e) => { state.search = e.target.value; renderCards(); });
+$("#searchInput").addEventListener("input", (e) => { state.search = e.target.value; state.shown = 24; renderCards(); });
+$("#areaSelect").innerHTML = AREAS.map((a) => `<option>${esc(a)}</option>`).join("");
+$("#areaSelect").addEventListener("change", (e) => { state.area = e.target.value; state.shown = 24; renderCards(); });
+$("#sortSelect").addEventListener("change", (e) => { state.sort = e.target.value; renderCards(); });
+$("#jainOnly").addEventListener("change", (e) => { state.jainOnly = e.target.checked; state.shown = 24; renderCards(); });
+$("#showMore").addEventListener("click", () => { state.shown += 24; renderCards(); });
 
 $("#joinForm").addEventListener("submit", (e) => { e.preventDefault(); join($("#joinName").value); });
 $("#joinDialog").addEventListener("cancel", (e) => { if (!state.me) e.preventDefault(); });

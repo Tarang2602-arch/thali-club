@@ -216,6 +216,21 @@ input, select, textarea { font: inherit; color: inherit; }
   font-size: 13px; font-weight: 600;
 }
 .chip.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.filters { margin-bottom: 10px; }
+.filter-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.select {
+  border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; padding: 9px 12px;
+  font-weight: 600; font-size: 14px; color: var(--ink); max-width: 100%;
+}
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.toggle input { accent-color: var(--saffron); width: 16px; height: 16px; }
+.result-count { font-size: 13px; margin-bottom: 12px; }
+.more-wrap { display: flex; justify-content: center; margin-top: 18px; }
+.jain-badge.ask { background: #fff3d6; color: #7a4b00; }
+.veg-badge {
+  position: absolute; top: 38px; right: 10px; z-index: 2; background: #fde8e0; color: #7a2008;
+  font-size: 11px; font-weight: 800; padding: 4px 9px; border-radius: 999px;
+}
 .search {
   display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 12px;
   border: 1px solid var(--line); background: var(--surface-2); min-width: 220px; flex: 0 1 280px;
@@ -417,6 +432,7 @@ input, select, textarea { font: inherit; color: inherit; }
   .day .av-stack { display: none; }
   .day.mine::after { top: 3px; right: 5px; font-size: 11px; }
   .search { flex: 1 1 100%; }
+  .select { flex: 1 1 45%; }
   .detail-grid, .final-form { grid-template-columns: 1fr; }
   .summary-tiles, .ticket-facts { grid-template-columns: 1fr; }
   .me-chip span.name { display: none; }
